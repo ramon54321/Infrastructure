@@ -1,18 +1,27 @@
 // @flow
 
-function myLog(message : string | number) {
-  console.log(message)
+import Game from "./game.js"
+
+// -- Create new game instance
+const game : Game = new Game()
+
+// -- Render loop call
+let framesThisSecond = 0
+let lastRenderTime = Date.now()
+const render = function() {
+	requestAnimationFrame(render)
+
+	let now = Date.now()
+	let deltaTime = (now - lastRenderTime) / 1000
+	lastRenderTime = now
+	framesThisSecond++
+
+	game.render(deltaTime)
 }
+render()
 
-type Triple = {a : number, b : number, c? : number}
-
-/**
- * Adds the numbers in the given Triple.
- * @param {Triple} a The numbers to add.
- * @returns {Number} The sum of all numbers in a.
- */
-function add(a : Triple) {
-  return a.a + a.b + (a.c ? a.c : 0)
-}
-
-myLog(add({a: 5, b: 4}))
+// -- Render fps log
+setInterval(() => {
+	console.log(framesThisSecond);
+	framesThisSecond = 0
+}, 1000)
