@@ -2043,6 +2043,10 @@ mkdirp@0.5, "mkdirp@>=0.5 0", mkdirp@^0.5.1, mkdirp@~0.5.0:
   dependencies:
     minimist "0.0.8"
 
+mousetrap@^1.6.1:
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/mousetrap/-/mousetrap-1.6.1.tgz#2a085f5c751294c75e7e81f6ec2545b29cbf42d9"
+
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
@@ -2839,6 +2843,14 @@ tar@^2.2.1:
     block-stream "*"
     fstream "^1.0.2"
     inherits "2"
+
+three.meshline@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/three.meshline/-/three.meshline-1.0.3.tgz#85e9190d9de16bbdcffcc083746c3ea82be15a9b"
+
+three@^0.90.0:
+  version "0.90.0"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.90.0.tgz#be478e7c0f82c5ae742c197db1e38e58b6190d1b"
 
 through@^2.3.8:
   version "2.3.8"

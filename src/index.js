@@ -25,3 +25,6 @@ setInterval(() => {
 	console.log(framesThisSecond);
 	framesThisSecond = 0
 }, 1000)
+
+
+//game.network.createNode("Town", "Hide", {x: 0, y: 0})

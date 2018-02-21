@@ -1,6 +1,6 @@
 {
   "scripts": {
-	"setup": "flow-typed install lodash@4.17.5",
+    "setup": "flow-typed install lodash@4.17.5",
     "build": "webpack --display-modules"
   },
   "devDependencies": {
@@ -11,6 +11,9 @@
     "flow-bin": "^0.66.0",
     "flow-typed": "^2.3.0",
     "lodash": "^4.17.5",
+    "mousetrap": "^1.6.1",
+    "three": "^0.90.0",
+    "three.meshline": "^1.0.3",
     "webpack": "^3.11.0"
   }
 }
