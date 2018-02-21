@@ -1,8 +1,8 @@
 // @flow
 
 export interface IRenderable {
-	scene : any;
 	render(deltaTime : number) : void;
+	createUiRender() : void;
 	createRender() : void;
 	showRender() : void;
 	hideRender() : void;
