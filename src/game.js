@@ -2,52 +2,39 @@
 
 import * as Globals from "./globals.js"
 import * as PIXI from "pixi.js"
-import type {OptionsTown, NodeType} from "./utils.js"
-import Network from "./network.js"
 import * as _ from "lodash"
+import * as Entities from "./entity.js"
+import * as Utils from "./utils.js"
 import Input from "./input.js"
-import {IRenderable} from "./iRenderable.js"
+import Assets from "./assets.js"
 
 
 export default class Game {
-	// -- Game logic
-	network : Network
-	input : Input
 
-	currentBlueprints : Array<IRenderable>
-	selectedItem : {type : string, item : any} | null
-	selectItem(type : string, item : any) {
-		if(!this.selectedItem) {
-			this.selectedItem = {type: type, item: item}
-		} else {
-			if(this.selectedItem.type === "town" && type === "town") {
-				this.network.createConnectionBlueprint(this.selectedItem.item, item)
-				this.selectedItem = null
-			}
-		}
-	}
-
-	mousePosition : any
-
-	// -- Rendering
 	app : any
 	scene : any
 
-	constructor() {
-		// -- Rendering
+	tickInterval : any
 
+	mousePosition : {x : number, y : number}
+	input : Input
+
+	entities : Array<any>
+
+	constructor() {
 		let width = window.innerWidth
 		let height = window.innerHeight
 
-		this.app = new PIXI.Application(width, height, {backgroundColor : 0xf4f4f4, antialias: true})
-		if(document.body) {
+		this.app = new PIXI.Application(width, height, {backgroundColor : 0xffffff, antialias: true})
+		if(document.body)
 			document.body.appendChild(this.app.view)
-		}
-		console.log("WebGL Supported: " + PIXI.utils.isWebGLSupported());
-		if(this.app.renderer instanceof PIXI.CanvasRenderer) {
-			console.log("Canvas Renderer")
+
+		console.log("WebGL Supported: " + PIXI.utils.isWebGLSupported())
+
+		if(this.app.renderer instanceof PIXI.WebGLRenderer) {
+			console.log("Using WebGL Renderer")
 		} else {
-			console.log("WebGL Renderer")
+			console.log("Using Canvas Renderer")
 		}
 
 		this.scene = new PIXI.Container()
@@ -55,97 +42,104 @@ export default class Game {
 		this.scene.position.x = (this.app.renderer.width / this.app.renderer.resolution) / 2
 		this.scene.scale.y = -1
 		this.scene.interactive = true
-		this.scene.on("pointermove", this.onMove.bind(this))
+		this.scene.on("pointermove", this.onMouseMove.bind(this))
+		this.scene.on("pointerdown", this.onMouseDown.bind(this))
 		this.app.stage.addChild(this.scene)
 
-		// -- Game logic
-		this.currentBlueprints = []
-		this.selectedItem = null
+		// -- Game logic initial values
 		this.mousePosition = {x: 0, y: 0}
-		this.network = new Network(this)
 		this.input = new Input()
+		this.entities = []
 
 		// -- Start game
 		this.start()
 
+		// -- Initiate loops
 		this.app.ticker.add((deltaTime) => {
 			this.render(deltaTime)
 		})
+
+		let last = Date.now()
+		this.tickInterval = setInterval(() => {
+			let now = Date.now()
+			let deltaTime = now - last
+			last = now
+			this.tick(deltaTime / 1000)
+		}, 100)
 	}
 
-	onMove(event : any) {
+	onMouseMove(event : any) {
 		this.mousePosition = event.data.getLocalPosition(this.scene)
 	}
 
+	onMouseDown(event : any) {
+		let closestEntityInfo = this.getClosestEntityInfoTo(this.mousePosition)
+	}
+
 	render(deltaTime : number) {
-		// -- Logic TODO: Put logic in a update or tick loop instead.
-		this.update(deltaTime)
-
-		// -- Render blueprints
-		_.map(this.currentBlueprints, (blueprint) => blueprint.render(deltaTime))
-
-		// -- Render network components
-		_.map(this.network.connections, (connection) => connection.render(deltaTime))
-		_.map(this.network.nodes, (node) => node.render(deltaTime))
-	}
-
-	update(deltaTime : number) {
-		this.updateCamera(deltaTime)
-		this.updateNetwork(deltaTime)
-	}
-	updateCamera(deltaTime : number) {
 		// Left
-		if(this.input.isDown("KeyA")){
+		if(this.input.isDown("KeyA"))
 			this.scene.x += 12 * deltaTime
-		}
 		// Right
 		if(this.input.isDown("KeyD"))
 			this.scene.x -= 12 * deltaTime
-
 		// Up
 		if(this.input.isDown("KeyW"))
-			this.scene.y += 8 * deltaTime
+			this.scene.y += 12 * deltaTime
 		// Down
 		if(this.input.isDown("KeyS"))
-			this.scene.y -= 8 * deltaTime
-
+			this.scene.y -= 12 * deltaTime
 	}
-	updateNetwork(deltaTime : number) {
-		if(this.input.isDown("Space")){
-			this.spawnTown({position: {x: 2, y: 2}})
-		}
+
+	tick(deltaTime : number) {
+		_.map(this.entities, (entity) => entity.tick(deltaTime))
 	}
 
 	start() {
-		// Create boundary lines
 		this.createBoundaryLines()
 
-		for (var i = 0; i < 40; i++) {
-			this.spawnTown()
-		}
+		this.spawnTown({isBlueprint: true})
+		this.spawnTown({isBlueprint: false})
+		this.spawnTown({isActive: false})
 
-		//this.network.createConnection(this.network.nodes[2], this.network.nodes[4])
-
-		//this.network.createConnectionBlueprint(this.network.nodes[0], this.network.nodes[1])
+		//this.spawnConnection()
 	}
 
-	// -- Logic methods
+	spawnTown(options? : any) {
+		let entity = new Entities.Town(this, options)
+		this.entities.push(entity)
+	}
+
 	createBoundaryLines() {
 		let graphics = new PIXI.Graphics();
 
 		graphics.lineStyle(2, 0x121212, 1)
 		graphics.drawRect(Globals.boundary.left, Globals.boundary.bottom, Globals.boundary.right * 2, Globals.boundary.top * 2)
+		graphics.hitArea = graphics.getBounds()
 
 		this.scene.addChild(graphics)
 	}
 
-	spawnTown(options? : OptionsTown) {
-		this.network.createNode(
-			"Town",
-			_.get(options, "name", Globals.getTownName()),
-			_.get(options, "position", {
-				x: Globals.boundary.left + Math.random() * Globals.boundary.right * 2, y: Globals.boundary.bottom + Math.random() * Globals.boundary.top * 2
-			})
-		)
+	getClosestEntityInfoTo(position : {x : number, y : number}) {
+		let closestEntity = null
+		let closestDistance = null
+		_.map(this.entities, (entity) => {
+			let graphic = entity.graphic
+			if(!graphic)
+				return
+			let distance = Utils.getSquareDistance(position, graphic.position)
+			if(!closestDistance || distance < closestDistance) {
+				closestEntity = entity
+				closestDistance = distance
+			}
+		})
+		return {entity: closestEntity, distance: closestDistance}
+	}
+
+	selectEntity(entity : Entities.Entity) {
+		if(entity.state !== "active")
+			return
+
+
 	}
 }
